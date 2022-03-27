@@ -46,7 +46,7 @@ public class UserController {
         } catch (Exception e) {
             logger.warn(e.getMessage());
 
-            return new ResponseEntity<String>(user.getUsername(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<String>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
     }

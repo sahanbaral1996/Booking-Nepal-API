@@ -36,24 +36,22 @@ public class UserService {
         return userList;
     }
 
-    public Users getUserByEmail(String email) {
-
+    private boolean doesUserExist(String email){
         AdminGetUserRequest userRequest = new AdminGetUserRequest().withUserPoolId(AWS_POOL_ID).withUsername(email);
-        AdminGetUserResult result = identityProvider.adminGetUser(userRequest);
-        if (result.getUsername().isEmpty()) {
-            throw new RuntimeException("User does not exist");
-        }
-        Users user = userRepository.findByUsername(email);
+        try{
 
-        if (user == null) {
-            throw new RuntimeException("User does not exist");
+            AdminGetUserResult result = identityProvider.adminGetUser(userRequest);
+            return true;
+        } catch (Exception e){
+            return false;
         }
-        return user;
-
     }
 
     public Users saveUser(Users user) throws RuntimeException {
         try {
+            if(doesUserExist(user.getUsername())){
+                throw new RuntimeException("User Already exists!");
+            }
             AdminCreateUserRequest createUserRequest = new AdminCreateUserRequest().
                     withUserPoolId(AWS_POOL_ID).
                     withUsername(user.getUsername()).
@@ -64,10 +62,7 @@ public class UserService {
             Users savedUser = userRepository.save(user);
             return user;
         } catch (Exception e) {
-            AdminDeleteUserRequest deleteUserRequest = new AdminDeleteUserRequest().withUserPoolId(AWS_POOL_ID).
-                    withUsername(user.getUsername());
-            AdminDeleteUserResult result = identityProvider.adminDeleteUser(deleteUserRequest);
-            throw new RuntimeException("User Creation Failed");
+            throw new RuntimeException(e.getMessage());
         }
     }
 }
